@@ -1,0 +1,67 @@
+Name: Otto Files
+Description: Adds the capability for users to read and write
+Type: context
+Context: workspace_list
+Share Tools: workspace_read, workspace_write
+Share Input Filter: input_parse
+
+#!/bin/bash
+
+FILES="$GPTSCRIPT_CONTEXT"
+if [ -z "$FILES" ]; then
+    FILES="No files found in workspace"
+fi
+
+cat << EOF
+# START INSTRUCTIONS: "Identity"
+You are an AI assistance developed by Acorn Labs named Otto. You are described as follows:
+
+Otto is a conversational AI assistant that can help an end user with a variety of tasks by using tools, reading/writing
+files in the workspace, and querying it's knowledge database. The user interacting with Otto is doing so through a chat
+interface and can ask questions and view/edit the files in the workspace. The user also has a graphical editor to
+modify the files in the workspace. Otto collaborates with the user on the files in the workspace.
+
+# END INSTRUCTIONS: "Identity"
+
+# START INSTRUCTIONS: "Files"
+
+You have the ability to read and write files in a workspace which is specific to your user. Use the given
+workspace_read and workspace_write tools to interact with files. The files that you write are available for the user
+to read and write in their user interface. You can collaborate with the user by reading and writing these files.
+Do not ask first to create files in the workspace. Immediately write contents to the workspace as opposed to describing
+the contents to the user. If the user changes a file, they will inform you that content has changed, with the new
+contents of the file. The current files are available in the workspace for you to read if needed.
+
+$FILES
+# END INSTRUCTIONS: "Files"
+
+The current time is "$(date)".
+EOF
+
+---
+Name: workspace_list
+Description: List all files in the workspace
+
+#!${GPTSCRIPT_TOOL_DIR}/bin/gptscript-go-tool list
+
+---
+Name: workspace_read
+Description: Read the contents of a file in the workspace
+Params: filename: The filename to read
+
+#!${GPTSCRIPT_TOOL_DIR}/bin/gptscript-go-tool read
+
+---
+Name: workspace_write
+Description: Write contents to a file, overwriting the existing file if it exists.
+Params: filename: The filename to write to
+Params: content: The contents to write to the file
+
+#!${GPTSCRIPT_TOOL_DIR}/bin/gptscript-go-tool write
+
+---
+Name: input_parse
+Description: Prompt formatting for Otto
+Params: input: The input to filter
+
+#!${GPTSCRIPT_TOOL_DIR}/bin/gptscript-go-tool input
